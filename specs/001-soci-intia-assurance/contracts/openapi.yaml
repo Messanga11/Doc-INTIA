@@ -1,0 +1,1232 @@
+openapi: 3.0.3
+info:
+  title: INTIA Assurance Management API
+  version: 1.0.0
+  description: REST API for managing clients, insurance policies, and users across INTIA branches
+  contact:
+    name: INTIA Assurance Development Team
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+  - url: https://api.intia-assurance.com/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Common schemas
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type identifier
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+      required:
+        - error
+        - message
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        total_pages:
+          type: integer
+          minimum: 0
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+
+    # Branch schemas
+    Branch:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique branch identifier
+        name:
+          type: string
+          maxLength: 100
+          description: Full branch name
+        code:
+          type: string
+          maxLength: 10
+          description: Short branch code
+        address:
+          type: string
+          description: Branch physical address
+        phone:
+          type: string
+          maxLength: 20
+          description: Branch contact phone
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp (UTC)
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp (UTC)
+      required:
+        - id
+        - name
+        - code
+        - address
+        - phone
+        - created_at
+        - updated_at
+
+    BranchCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          description: Full branch name
+        code:
+          type: string
+          maxLength: 10
+          description: Short branch code
+        address:
+          type: string
+          description: Branch physical address
+        phone:
+          type: string
+          maxLength: 20
+          description: Branch contact phone
+      required:
+        - name
+        - code
+        - address
+        - phone
+
+    BranchUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          description: Full branch name
+        code:
+          type: string
+          maxLength: 10
+          description: Short branch code
+        address:
+          type: string
+          description: Branch physical address
+        phone:
+          type: string
+          maxLength: 20
+          description: Branch contact phone
+
+    # Client schemas
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique client identifier
+        branch_id:
+          type: integer
+          description: Associated branch identifier
+        branch:
+          $ref: '#/components/schemas/Branch'
+        first_name:
+          type: string
+          maxLength: 50
+          description: Client's first name
+        last_name:
+          type: string
+          maxLength: 50
+          description: Client's last name
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Client's email address
+        phone:
+          type: string
+          maxLength: 20
+          description: Client's phone number
+        address:
+          type: string
+          description: Client's full address
+        date_of_birth:
+          type: string
+          format: date
+          description: Client's date of birth
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp (UTC)
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp (UTC)
+      required:
+        - id
+        - branch_id
+        - first_name
+        - last_name
+        - email
+        - phone
+        - address
+        - created_at
+        - updated_at
+
+    ClientCreate:
+      type: object
+      properties:
+        branch_id:
+          type: integer
+          description: Associated branch identifier
+        first_name:
+          type: string
+          maxLength: 50
+          description: Client's first name
+        last_name:
+          type: string
+          maxLength: 50
+          description: Client's last name
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Client's email address
+        phone:
+          type: string
+          maxLength: 20
+          description: Client's phone number
+        address:
+          type: string
+          description: Client's full address
+        date_of_birth:
+          type: string
+          format: date
+          description: Client's date of birth
+      required:
+        - branch_id
+        - first_name
+        - last_name
+        - email
+        - phone
+        - address
+
+    ClientUpdate:
+      type: object
+      properties:
+        branch_id:
+          type: integer
+          description: Associated branch identifier
+        first_name:
+          type: string
+          maxLength: 50
+          description: Client's first name
+        last_name:
+          type: string
+          maxLength: 50
+          description: Client's last name
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Client's email address
+        phone:
+          type: string
+          maxLength: 20
+          description: Client's phone number
+        address:
+          type: string
+          description: Client's full address
+        date_of_birth:
+          type: string
+          format: date
+          description: Client's date of birth
+
+    ClientList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Client'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required:
+        - data
+        - meta
+
+    # Policy schemas
+    Policy:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique policy identifier
+        policy_number:
+          type: string
+          maxLength: 50
+          description: Unique policy number
+        client_id:
+          type: integer
+          description: Associated client identifier
+        client:
+          $ref: '#/components/schemas/Client'
+        branch_id:
+          type: integer
+          description: Associated branch identifier
+        branch:
+          $ref: '#/components/schemas/Branch'
+        type:
+          type: string
+          maxLength: 100
+          description: Insurance type (Auto, Health, Property, etc.)
+        coverage:
+          type: string
+          description: Coverage details and description
+        premium:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Policy premium amount
+        start_date:
+          type: string
+          format: date
+          description: Policy effective start date
+        end_date:
+          type: string
+          format: date
+          description: Policy expiration date
+        status:
+          type: string
+          enum: [active, pending, cancelled, expired]
+          description: Current policy status
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp (UTC)
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp (UTC)
+      required:
+        - id
+        - policy_number
+        - client_id
+        - branch_id
+        - type
+        - coverage
+        - premium
+        - start_date
+        - end_date
+        - status
+        - created_at
+        - updated_at
+
+    PolicyCreate:
+      type: object
+      properties:
+        policy_number:
+          type: string
+          maxLength: 50
+          description: Unique policy number
+        client_id:
+          type: integer
+          description: Associated client identifier
+        type:
+          type: string
+          maxLength: 100
+          description: Insurance type
+        coverage:
+          type: string
+          description: Coverage details and description
+        premium:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Policy premium amount
+        start_date:
+          type: string
+          format: date
+          description: Policy effective start date
+        end_date:
+          type: string
+          format: date
+          description: Policy expiration date
+      required:
+        - policy_number
+        - client_id
+        - type
+        - coverage
+        - premium
+        - start_date
+        - end_date
+
+    PolicyUpdate:
+      type: object
+      properties:
+        type:
+          type: string
+          maxLength: 100
+          description: Insurance type
+        coverage:
+          type: string
+          description: Coverage details and description
+        premium:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Policy premium amount
+        start_date:
+          type: string
+          format: date
+          description: Policy effective start date
+        end_date:
+          type: string
+          format: date
+          description: Policy expiration date
+        status:
+          type: string
+          enum: [active, pending, cancelled, expired]
+          description: Current policy status
+
+    PolicyList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Policy'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required:
+        - data
+        - meta
+
+    # User schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique user identifier
+        username:
+          type: string
+          maxLength: 50
+          description: Login username
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Contact email
+        role:
+          type: string
+          enum: [ADMIN, AGENT, VIEWER]
+          description: User role with permissions
+        branch_id:
+          type: integer
+          nullable: true
+          description: Associated branch (null for ADMIN)
+        branch:
+          $ref: '#/components/schemas/Branch'
+        is_active:
+          type: boolean
+          description: Account status
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp (UTC)
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp (UTC)
+      required:
+        - id
+        - username
+        - email
+        - role
+        - is_active
+        - created_at
+        - updated_at
+
+    UserCreate:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 50
+          description: Login username
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Contact email
+        password:
+          type: string
+          minLength: 8
+          description: Plain text password (will be hashed)
+        role:
+          type: string
+          enum: [ADMIN, AGENT, VIEWER]
+          description: User role
+        branch_id:
+          type: integer
+          description: Associated branch (required for AGENT/VIEWER)
+      required:
+        - username
+        - email
+        - password
+        - role
+
+    UserUpdate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Contact email
+        role:
+          type: string
+          enum: [ADMIN, AGENT, VIEWER]
+          description: User role
+        branch_id:
+          type: integer
+          description: Associated branch
+        is_active:
+          type: boolean
+          description: Account status
+
+    # Authentication schemas
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: User login username
+        password:
+          type: string
+          description: User password
+      required:
+        - username
+        - password
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+        token_type:
+          type: string
+          enum: [bearer]
+          description: Token type
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - access_token
+        - token_type
+        - expires_in
+        - user
+
+    # Audit log schemas
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique audit log entry identifier
+        user_id:
+          type: integer
+          description: User who performed the action
+        user:
+          $ref: '#/components/schemas/User'
+        action:
+          type: string
+          enum: [CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT]
+          description: Action performed
+        resource_type:
+          type: string
+          enum: [client, policy, user, branch]
+          description: Type of resource affected
+        resource_id:
+          type: integer
+          description: ID of affected resource
+        old_values:
+          type: object
+          description: Previous state (for updates)
+        new_values:
+          type: object
+          description: New state (for creates/updates)
+        timestamp:
+          type: string
+          format: date-time
+          description: Action timestamp (UTC)
+        ip_address:
+          type: string
+          description: Client IP address
+        user_agent:
+          type: string
+          description: Client user agent
+      required:
+        - id
+        - user_id
+        - action
+        - resource_type
+        - timestamp
+
+    AuditLogList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required:
+        - data
+        - meta
+
+paths:
+  # Authentication endpoints
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticate user and return JWT token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/me:
+    get:
+      summary: Get current user profile
+      description: Retrieve current authenticated user's profile
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Branch endpoints
+  /branches:
+    get:
+      summary: List branches
+      description: Retrieve paginated list of branches
+      tags: [Branches]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Branches list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Branch'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create branch
+      description: Create a new branch (ADMIN only)
+      tags: [Branches]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchCreate'
+      responses:
+        '201':
+          description: Branch created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /branches/{branch_id}:
+    get:
+      summary: Get branch
+      description: Retrieve specific branch details
+      tags: [Branches]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Branch details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '404':
+          description: Branch not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update branch
+      description: Update branch information (ADMIN only)
+      tags: [Branches]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchUpdate'
+      responses:
+        '200':
+          description: Branch updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '403':
+          description: Forbidden - insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Branch not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Client endpoints
+  /clients:
+    get:
+      summary: List clients
+      description: Retrieve paginated list of clients (filtered by branch access)
+      tags: [Clients]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+            description: Search in name and email fields
+        - name: branch_id
+          in: query
+          schema:
+            type: integer
+            description: Filter by branch (ADMIN only)
+      responses:
+        '200':
+          description: Clients list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientList'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create client
+      description: Create a new client record
+      tags: [Clients]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+      responses:
+        '201':
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - branch access violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /clients/{client_id}:
+    get:
+      summary: Get client
+      description: Retrieve specific client details with policies
+      tags: [Clients]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Client details with policies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client:
+                    $ref: '#/components/schemas/Client'
+                  policies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Policy'
+        '403':
+          description: Forbidden - branch access violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update client
+      description: Update client information
+      tags: [Clients]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientUpdate'
+      responses:
+        '200':
+          description: Client updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '403':
+          description: Forbidden - branch access violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete client
+      description: Delete client record (only if no active policies)
+      tags: [Clients]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Client deleted
+        '403':
+          description: Forbidden - branch access violation or active policies exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Policy endpoints
+  /policies:
+    get:
+      summary: List policies
+      description: Retrieve paginated list of policies (filtered by branch access)
+      tags: [Policies]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: client_id
+          in: query
+          schema:
+            type: integer
+            description: Filter by client
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, pending, cancelled, expired]
+        - name: branch_id
+          in: query
+          schema:
+            type: integer
+            description: Filter by branch (ADMIN only)
+      responses:
+        '200':
+          description: Policies list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyList'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create policy
+      description: Create a new insurance policy
+      tags: [Policies]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyCreate'
+      responses:
+        '201':
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - branch access violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /policies/{policy_id}:
+    get:
+      summary: Get policy
+      description: Retrieve specific policy details
+      tags: [Policies]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '403':
+          description: Forbidden - branch access violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update policy
+      description: Update policy information
+      tags: [Policies]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyUpdate'
+      responses:
+        '200':
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '403':
+          description: Forbidden - branch access violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete policy
+      description: Delete policy record
+      tags: [Policies]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Policy deleted
+        '403':
+          description: Forbidden - branch access violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Audit log endpoints (ADMIN only)
+  /audit-logs:
+    get:
+      summary: List audit logs
+      description: Retrieve paginated audit log entries (ADMIN only)
+      tags: [Audit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+            description: Filter by user
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT]
+        - name: resource_type
+          in: query
+          schema:
+            type: string
+            enum: [client, policy, user, branch]
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Audit logs list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogList'
+        '403':
+          description: Forbidden - ADMIN access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
