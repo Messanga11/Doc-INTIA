@@ -90,9 +90,9 @@ export default function ClientsPage() {
 
   const isInitialMount = useRef(true)
 
-  useEffect(() => {
-    fetchClients()
-  }, [])
+  // useEffect(() => {
+  //   fetchClients()
+  // }, [])
 
   // Debounce search
   useEffect(() => {

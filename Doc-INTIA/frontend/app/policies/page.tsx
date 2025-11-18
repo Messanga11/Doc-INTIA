@@ -101,9 +101,9 @@ export default function PoliciesPage() {
 
   const isInitialMount = useRef(true)
 
-  useEffect(() => {
-    fetchPolicies()
-  }, [])
+  // useEffect(() => {
+  //   fetchPolicies()
+  // }, [])
 
   // Debounce search and status filter
   useEffect(() => {
