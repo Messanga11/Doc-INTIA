@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -51,8 +51,13 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [meta, setMeta] = useState<PaginationMeta | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const hadFocusRef = useRef(false)
 
   const fetchClients = async (searchQuery = '', page = 1) => {
+    // Check if search input had focus before fetch
+    hadFocusRef.current = document.activeElement === searchInputRef.current
+    
     try {
       setLoading(true)
       const limit = 20
@@ -73,13 +78,40 @@ export default function ClientsPage() {
     }
   }
 
+  // Restore focus after loading completes if input had focus before
+  useEffect(() => {
+    if (!loading && hadFocusRef.current && searchInputRef.current) {
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        searchInputRef.current?.focus()
+      })
+    }
+  }, [loading])
+
+  const isInitialMount = useRef(true)
+
   useEffect(() => {
     fetchClients()
   }, [])
 
+  // Debounce search
+  useEffect(() => {
+    // Skip debounce on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetchClients(search, 1)
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
   const handleSearch = (query: string) => {
     setSearch(query)
-    fetchClients(query)
+    // Don't fetch immediately - let the debounce effect handle it
   }
 
   const handleDelete = async (clientId: number) => {
@@ -117,9 +149,15 @@ export default function ClientsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
           <Input
+            ref={searchInputRef}
             placeholder="Search clients..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+              }
+            }}
             className="pl-10"
           />
         </div>

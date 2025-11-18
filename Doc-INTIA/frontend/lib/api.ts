@@ -117,13 +117,14 @@ export const clientsApi = {
 
 // Policies API
 export const policiesApi = {
-  getAll: async (params?: { skip?: number; limit?: number; client_id?: number; status?: string; branch_id?: number }) => {
+  getAll: async (params?: { skip?: number; limit?: number; client_id?: number; status?: string; branch_id?: number; search?: string }) => {
     const queryParams = new URLSearchParams()
     if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString())
     if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString())
     if (params?.client_id) queryParams.append('client_id', params.client_id.toString())
     if (params?.status) queryParams.append('status', params.status)
     if (params?.branch_id) queryParams.append('branch_id', params.branch_id.toString())
+    if (params?.search) queryParams.append('search', params.search)
     
     const query = queryParams.toString()
     return apiRequest<ApiResponse<any[]>>(`/api/v1/policies${query ? `?${query}` : ''}`)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Edit, Trash2, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -61,8 +61,13 @@ export default function PoliciesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [meta, setMeta] = useState<PaginationMeta | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const hadFocusRef = useRef(false)
 
   const fetchPolicies = async (searchQuery = '', status = 'all', page = 1) => {
+    // Check if search input had focus before fetch
+    hadFocusRef.current = document.activeElement === searchInputRef.current
+    
     try {
       setLoading(true)
       const limit = 20
@@ -71,7 +76,8 @@ export default function PoliciesPage() {
       const data = await policiesApi.getAll({
         skip,
         limit,
-        ...(status !== 'all' && { status })
+        ...(status !== 'all' && { status }),
+        ...(searchQuery && { search: searchQuery })
       })
       
       setPolicies(data.data)
@@ -83,18 +89,45 @@ export default function PoliciesPage() {
     }
   }
 
+  // Restore focus after loading completes if input had focus before
+  useEffect(() => {
+    if (!loading && hadFocusRef.current && searchInputRef.current) {
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        searchInputRef.current?.focus()
+      })
+    }
+  }, [loading])
+
+  const isInitialMount = useRef(true)
+
   useEffect(() => {
     fetchPolicies()
   }, [])
 
+  // Debounce search and status filter
+  useEffect(() => {
+    // Skip debounce on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetchPolicies(search, statusFilter, 1)
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [search, statusFilter])
+
   const handleSearch = (query: string) => {
     setSearch(query)
-    fetchPolicies(query, statusFilter)
+    // Don't fetch immediately - let the debounce effect handle it
   }
 
   const handleStatusFilter = (status: string) => {
     setStatusFilter(status)
-    fetchPolicies(search, status)
+    // Don't fetch immediately - let the debounce effect handle it
   }
 
   const handleDelete = async (policyId: number) => {
@@ -146,9 +179,15 @@ export default function PoliciesPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
           <Input
+            ref={searchInputRef}
             placeholder="Search policies..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+              }
+            }}
             className="pl-10"
           />
         </div>

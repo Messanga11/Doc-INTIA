@@ -22,6 +22,7 @@ def read_policies(
     client_id: Optional[int] = None,
     status: Optional[str] = Query(None, regex="^(active|pending|cancelled|expired)$"),
     branch_id: Optional[int] = None,
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -34,14 +35,16 @@ def read_policies(
         limit=limit,
         client_id=client_id,
         status=status,
-        branch_id=branch_id
+        branch_id=branch_id,
+        search=search
     )
 
     total_count = policy_service.get_policy_count(
         current_user=current_user,
         client_id=client_id,
         status=status,
-        branch_id=branch_id
+        branch_id=branch_id,
+        search=search
     )
 
     total_pages = (total_count + limit - 1) // limit

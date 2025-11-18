@@ -21,7 +21,8 @@ class PolicyService:
         limit: int = 20,
         client_id: Optional[int] = None,
         status: Optional[str] = None,
-        branch_id: Optional[int] = None
+        branch_id: Optional[int] = None,
+        search: Optional[str] = None
     ) -> List[InsurancePolicy]:
         """Get policies with filtering and access control."""
         query = self.db.query(InsurancePolicy)
@@ -40,6 +41,20 @@ class PolicyService:
         if status:
             query = query.filter(InsurancePolicy.status == status)
 
+        # Apply search filter
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.join(Client).filter(
+                or_(
+                    InsurancePolicy.policy_number.ilike(search_pattern),
+                    InsurancePolicy.type.ilike(search_pattern),
+                    InsurancePolicy.coverage.ilike(search_pattern),
+                    Client.first_name.ilike(search_pattern),
+                    Client.last_name.ilike(search_pattern),
+                    Client.email.ilike(search_pattern)
+                )
+            )
+
         return query.offset(skip).limit(limit).all()
 
     def get_policy_count(
@@ -47,7 +62,8 @@ class PolicyService:
         current_user: User,
         client_id: Optional[int] = None,
         status: Optional[str] = None,
-        branch_id: Optional[int] = None
+        branch_id: Optional[int] = None,
+        search: Optional[str] = None
     ) -> int:
         """Get total count of policies for pagination."""
         query = self.db.query(InsurancePolicy)
@@ -63,6 +79,20 @@ class PolicyService:
             query = query.filter(InsurancePolicy.client_id == client_id)
         if status:
             query = query.filter(InsurancePolicy.status == status)
+
+        # Apply search filter
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.join(Client).filter(
+                or_(
+                    InsurancePolicy.policy_number.ilike(search_pattern),
+                    InsurancePolicy.type.ilike(search_pattern),
+                    InsurancePolicy.coverage.ilike(search_pattern),
+                    Client.first_name.ilike(search_pattern),
+                    Client.last_name.ilike(search_pattern),
+                    Client.email.ilike(search_pattern)
+                )
+            )
 
         return query.count()
 
