@@ -16,20 +16,22 @@ Avant de commencer, assurez-vous d'avoir installé :
 ### 1. Cloner le projet (si nécessaire)
 
 ```bash
-git clone <url-du-repo>
-cd afreetech
+git clone git@github.com:Messanga11/Doc-INTIA.git
+cd Doc-INTIA
 ```
 
 ### 2. Installer toutes les dépendances
 
 Depuis la racine du projet, exécutez :
 `
+
 ```bash
 npm install
 npm run install:all
 ```
 
 Cette commande va :
+
 - Installer les dépendances Node.js (concurrently)
 - Créer l'environnement virtuel Python pour le backend
 - Installer les dépendances Python du backend
@@ -67,6 +69,7 @@ npm run seed
 ```
 
 Cela créera :
+
 - 3 succursales (Direction Générale, INTIA-Douala, INTIA-Yaoundé)
 - 1 utilisateur admin (username: `admin`, password: `ChangeMe123!`)
 
@@ -81,17 +84,20 @@ npm run dev
 ```
 
 Cette commande lance automatiquement :
+
 - Le backend FastAPI sur http://localhost:8000
 - Le frontend Next.js sur http://localhost:3000
 
 ### Option 2 : Lancer séparément
 
 **Backend uniquement :**
+
 ```bash
 npm run dev:backend
 ```
 
 **Frontend uniquement :**
+
 ```bash
 npm run dev:frontend
 ```
@@ -158,6 +164,7 @@ Depuis la racine du projet :
 ## 📚 Documentation complète
 
 Pour plus de détails sur :
+
 - L'architecture du projet
 - Les endpoints API
 - Les rôles utilisateurs
@@ -187,6 +194,7 @@ pip install -r requirements.txt
 ### Le backend ne démarre pas
 
 Vérifiez que :
+
 - L'environnement virtuel est activé
 - Le fichier `.env` existe dans `Doc-INTIA/backend/`
 - Le port 8000 n'est pas déjà utilisé
@@ -194,6 +202,7 @@ Vérifiez que :
 ### Le frontend ne démarre pas
 
 Vérifiez que :
+
 - Node.js est installé (version 18+)
 - Le fichier `.env.local` existe dans `Doc-INTIA/frontend/`
 - Le port 3000 n'est pas déjà utilisé
@@ -201,7 +210,7 @@ Vérifiez que :
 ## 📝 Structure du projet
 
 ```
-afreetech/
+Doc-INTIA/
 ├── Doc-INTIA/
 │   ├── backend/          # API FastAPI
 │   │   ├── app/          # Code de l'application
